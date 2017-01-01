@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.util.Log;
 import android.os.Handler;
-
+import android.os.HandlerThread;
 public class MainActivity extends AppCompatActivity {
 
 
@@ -21,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
     private Handler myHandler = null;
     private int ButtonCount = 0;
     private int msgCount = 0;
+    private HandlerThread myThread3 = null;
+    private Handler myHandler3 = null;
 
     class MyRunnable implements  Runnable {
         public  void run(){
@@ -82,6 +84,14 @@ public class MainActivity extends AppCompatActivity {
                 Message msg = new Message();
 
                 myHandler.sendMessage(msg);
+
+                myHandler3.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "get Message for Thread3 "+msgCount);
+                        msgCount++;
+                    }
+                });
             }
         });
 
@@ -98,6 +108,13 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+
+        myThread3 = new HandlerThread("MessageTestThread3");
+        myThread3.start();
+
+        myHandler3 = new Handler(myThread3.getLooper());
+
     }
 
     @Override
