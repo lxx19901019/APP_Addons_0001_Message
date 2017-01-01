@@ -1,5 +1,7 @@
 package com.lxx.app_addons_0001_message;
 
+import android.os.Looper;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -7,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.util.Log;
+import android.os.Handler;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,9 +17,10 @@ public class MainActivity extends AppCompatActivity {
     private Button mButton = null;
     private final String TAG = "MessageTest";
     private Thread myThread = null;
-    private Thread myThread2 = null;
+    private MyThread myThread2 = null;
+    private Handler myHandler = null;
     private int ButtonCount = 0;
-
+    private int msgCount = 0;
 
     class MyRunnable implements  Runnable {
         public  void run(){
@@ -33,20 +37,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class MyThead extends Thread {
-        @Override
+    class MyThread extends Thread {
+        private Looper mLoop = null;
         public void run() {
             super.run();
-            int count = 0;
-            for (;;) {
-                Log.d(TAG, "MyThread2 "+count);
-                count++;
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            Looper.prepare();
+            synchronized (this) {
+                mLoop = Looper.myLooper();
+                notifyAll();
             }
+            Looper.loop();
+        }
+        public Looper getLooper()
+        {
+            if(!isAlive()) {
+                return null;
+            }
+            synchronized (this) {
+                while(isAlive() && mLoop == null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return mLoop;
+
+            }
+
         }
     }
     @Override
@@ -61,13 +79,25 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Log.d(TAG, "Send Message "+ButtonCount);
                 ButtonCount++;
+                Message msg = new Message();
+
+                myHandler.sendMessage(msg);
             }
         });
 
         myThread = new Thread(new MyRunnable());
         myThread.start();
-        myThread2 = new MyThead();
+        myThread2 = new MyThread();
         myThread2.start();
+
+        myHandler = new Handler(myThread2.getLooper(), new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                Log.d(TAG, "get Message "+msgCount);
+                msgCount++;
+                return false;
+            }
+        });
     }
 
     @Override
