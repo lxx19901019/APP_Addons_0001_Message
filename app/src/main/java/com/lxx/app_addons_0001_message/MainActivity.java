@@ -13,7 +13,42 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mButton = null;
     private final String TAG = "MessageTest";
+    private Thread myThread = null;
+    private Thread myThread2 = null;
     private int ButtonCount = 0;
+
+
+    class MyRunnable implements  Runnable {
+        public  void run(){
+            int count = 0;
+            for (;;) {
+                Log.d(TAG, "MyThread "+count);
+                count++;
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    class MyThead extends Thread {
+        @Override
+        public void run() {
+            super.run();
+            int count = 0;
+            for (;;) {
+                Log.d(TAG, "MyThread2 "+count);
+                count++;
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,10 +59,15 @@ public class MainActivity extends AppCompatActivity {
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    Log.d(TAG, "Send Message "+ButtonCount);
-                    ButtonCount++;
+                Log.d(TAG, "Send Message "+ButtonCount);
+                ButtonCount++;
             }
         });
+
+        myThread = new Thread(new MyRunnable());
+        myThread.start();
+        myThread2 = new MyThead();
+        myThread2.start();
     }
 
     @Override
